@@ -40,6 +40,97 @@ export function staticKeyToShadowsocksSessionConfig(staticKey: string): Shadowso
   }
 }
 
+function vlessAccessKeyToXraySessionConfig(accessKey: string): XraySessionConfig {
+  let url: URL;
+  try {
+    url = new URL(accessKey);
+  } catch (cause) {
+    throw new errors.ServerAccessKeyInvalid('Invalid VLESS access key.', {cause});
+  }
+
+  const uuid = decodeURIComponent(url.username);
+  if (!uuid) {
+    throw new errors.ServerAccessKeyInvalid('VLESS access key is missing a UUID.');
+  }
+
+  const host = url.hostname;
+  const port = Number(url.port);
+  if (!host || !url.port || Number.isNaN(port)) {
+    throw new errors.ServerAccessKeyInvalid('VLESS access key is missing a host or port.');
+  }
+
+  const params = url.searchParams;
+  const network = params.get('type') ?? 'tcp';
+  const security = params.get('security') ?? 'none';
+  const flow = params.get('flow') ?? undefined;
+
+  const streamSettings: Record<string, unknown> = {
+    network,
+    security,
+  };
+
+  if (security === 'reality') {
+    const publicKey = params.get('pbk');
+    const serverName = params.get('sni') ?? undefined;
+    if (!publicKey || !serverName) {
+      throw new errors.ServerAccessKeyInvalid('VLESS reality settings require pbk and sni parameters.');
+    }
+
+    streamSettings.realitySettings = {
+      publicKey,
+      shortId: params.get('sid') ?? '',
+      fingerprint: params.get('fp') ?? 'random',
+      serverName,
+      spiderX: params.get('spx') ?? '',
+    };
+  }
+
+  const config = {
+    inbounds: [
+      {
+        port: 12080,
+        listen: '127.0.0.1',
+        protocol: 'socks',
+        settings: {udp: true},
+      },
+    ],
+    outbounds: [
+      {
+        protocol: 'vless',
+        settings: {
+          vnext: [
+            {
+              address: host,
+              port,
+              users: [
+                {
+                  id: uuid,
+                  encryption: 'none',
+                  ...(flow ? {flow} : {}),
+                },
+              ],
+            },
+          ],
+        },
+        streamSettings,
+      },
+    ],
+  };
+
+  return {
+    xrayConfig: JSON.stringify(config),
+    host,
+  };
+}
+
+export function staticKeyToSessionConfig(staticKey: string): ShadowsocksSessionConfig | XraySessionConfig {
+  if (staticKey.startsWith('vless://')) {
+    return vlessAccessKeyToXraySessionConfig(staticKey);
+  }
+
+  return staticKeyToShadowsocksSessionConfig(staticKey);
+}
+
 interface ShadowsocksServerConfig {
   method: string,
   password: string,

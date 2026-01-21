@@ -17,7 +17,7 @@ import * as events from '../../model/events';
 import {Server, ServerType} from '../../model/server';
 
 import {ShadowsocksSessionConfig, Tunnel, TunnelStatus, XraySessionConfig} from '../tunnel';
-import {fetchSessionConfig, staticKeyToShadowsocksSessionConfig} from './access_key_serialization';
+import {fetchSessionConfig, staticKeyToSessionConfig} from './access_key_serialization';
 
 // PLEASE DON'T use this class outside of this `outline_server_repository` folder!
 
@@ -44,7 +44,7 @@ export class OutlineServer implements Server {
         break;
       case ServerType.STATIC_CONNECTION:
       default:
-        this.sessionConfig = staticKeyToShadowsocksSessionConfig(accessKey);
+        this.sessionConfig = staticKeyToSessionConfig(accessKey);
         break;
     }
 

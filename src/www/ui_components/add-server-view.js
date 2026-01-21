@@ -26,7 +26,7 @@ Polymer({
         line-height: 20px;
         color: rgba(0, 0, 0, 0.87);
         --error-color: #f44336;
-        --success-color: #00bfa5;
+        --success-color: var(--medium-green);
         font-family: var(--outline-font-family);
       }
       :host a {
