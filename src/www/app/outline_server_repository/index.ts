@@ -22,12 +22,20 @@ import {ServerRepository, ServerType} from '../../model/server';
 import {TunnelFactory} from '../tunnel';
 
 import {OutlineServer} from './server';
-import {staticKeyToShadowsocksSessionConfig} from './access_key_serialization';
+import {staticKeyToSessionConfig, staticKeyToShadowsocksSessionConfig} from './access_key_serialization';
 
 // TODO(daniellacosse): write unit tests for these functions
 
 // Compares access keys proxying parameters.
 function staticKeysMatch(a: string, b: string): boolean {
+  if (a.startsWith('vless://') && b.startsWith('vless://')) {
+    return a === b;
+  }
+
+  if (a.startsWith('vless://') || b.startsWith('vless://')) {
+    return false;
+  }
+
   try {
     const l = staticKeyToShadowsocksSessionConfig(a);
     const r = staticKeyToShadowsocksSessionConfig(b);
@@ -196,6 +204,16 @@ export class OutlineServerRepository implements ServerRepository {
     if (alreadyAddedServer) {
       throw new errors.ServerAlreadyAdded(alreadyAddedServer);
     }
+
+    if (staticKey.startsWith('vless://')) {
+      try {
+        staticKeyToSessionConfig(staticKey);
+      } catch (error) {
+        throw new errors.ServerUrlInvalid(error.message || 'failed to parse access key');
+      }
+      return;
+    }
+
     let config = null;
     try {
       config = SHADOWSOCKS_URI.parse(staticKey);

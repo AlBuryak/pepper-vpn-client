@@ -32,7 +32,7 @@ Polymer({
         padding: 0 8px;
       }
       :host a {
-        color: #009688;
+        color: var(--medium-green);
       }
       paper-card {
         display: block;
@@ -44,7 +44,7 @@ Polymer({
       paper-textarea,
       paper-dropdown-menu {
         text-align: left;
-        --paper-input-container-focus-color: #009688;
+        --paper-input-container-focus-color: var(--medium-green);
       }
       paper-dropdown-menu {
         width: 100%;

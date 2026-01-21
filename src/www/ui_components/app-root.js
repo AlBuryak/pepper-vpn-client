@@ -65,9 +65,9 @@ export class AppRoot extends mixinBehaviors([AppLocalizeBehavior], PolymerElemen
       <style>
         :host {
           --app-toolbar-height: 40px;
-          --light-green: #2fbea5;
-          --medium-green: #009688;
-          --dark-green: #263238;
+          --light-green: #93c5fd;
+          --medium-green: #3b82f6;
+          --dark-green: #1e3a8a;
           --light-gray: #ececec;
           --paper-dialog-button-color: var(--medium-green);
           --app-drawer-width: 280px;
